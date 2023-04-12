@@ -35,7 +35,7 @@ let coachImg;
 let coachRows = 2;
 let coachColumns = 3;
 let coachCount = 0; //number of coachs to defeat
-let coachVelocityX = 3; //coach moving speed
+let coachVelocityX = .1; //coach moving speed
 
 //bullets
 let bulletArray = [];

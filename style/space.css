@@ -4,6 +4,7 @@ body {
 }
 
 #board {
-  background-image: url("/images/thevic.jpeg");
+  background-image: url("/images/thevic.png");
   background-size: cover;
+  background-position: center;
 }
