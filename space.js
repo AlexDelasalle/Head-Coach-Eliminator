@@ -8,34 +8,34 @@ let boardWidth = tileSize * columns; // 32 * 16
 let boardHeight = tileSize * rows; // 32 * 16
 let context;
 
-//pozzo
-let pozzoWidth = tileSize*1.5;
-let pozzoHeight = tileSize*1.5;
-let pozzoX = tileSize * columns/2 - tileSize;
-let pozzoY = tileSize * rows - tileSize*2;
+//jet
+let jetWidth = tileSize*1.5;
+let jetHeight = tileSize*1.5;
+let jetX = tileSize * columns/2 - tileSize;
+let jetY = tileSize * rows - tileSize*2.5;
 
-let pozzo = {
-    x : pozzoX,
-    y : pozzoY,
-    width : pozzoWidth,
-    height : pozzoHeight
+let jet = {
+    x : jetX,
+    y : jetY,
+    width : jetWidth,
+    height : jetHeight
 }
 
-let pozzoImg;
-let pozzoVelocityX = tileSize; //pozzo moving speed
+let jetImg;
+let jetVelocityX = tileSize; //jet moving speed
 
-//coaches
-let coachArray = [];
-let coachWidth = tileSize*2;
-let coachHeight = tileSize*2;
-let coachX = tileSize;
-let coachY = tileSize;
-let coachImg;
+//aliens
+let alienArray = [];
+let alienWidth = tileSize*1.5;
+let alienHeight = tileSize*1.5;
+let alienX = tileSize;
+let alienY = tileSize;
+let alienImg;
 
-let coachRows = 2;
-let coachColumns = 3;
-let coachCount = 0; //number of coachs to defeat
-let coachVelocityX = 2; //coach moving speed
+let alienRows = 2;
+let alienColumns = 3;
+let alienCount = 0; //number of aliens to defeat
+let alienVelocityX = 2; //alien moving speed
 
 //bullets
 let bulletArray = [];
@@ -51,31 +51,23 @@ window.onload = function() {
     board.height = boardHeight;
     context = board.getContext("2d"); //used for drawing on the board
 
-    //draw initial pozzo
+    //draw initial jet
     // context.fillStyle="green";
-    // context.fillRect(pozzo.x, pozzo.y, pozzo.width, pozzo.height);
+    // context.fillRect(jet.x, jet.y, jet.width, jet.height);
 
     //load images
-    pozzoImg = new Image();
-    pozzoImg.src = "./images/pozzo.png";
-    pozzoImg.onload = function() {
-        context.drawImage(pozzoImg, pozzo.x, pozzo.y, pozzo.width, pozzo.height);
+    jetImg = new Image();
+    jetImg.src = "./images/jet.png";
+    jetImg.onload = function() {
+        context.drawImage(jetImg, jet.x, jet.y, jet.width, jet.height);
     }
 
-    let coachImgPaths = [
-      "/images/xisco.png",
-      "/images/ranieri.png",
-      "/images/wilder.png",
-      "/images/edwards.png",
-      "/images/bilic.png",
-  ];
-
-  coachImg = new Image();
-  coachImg.src = coachImgPaths[Math.floor(Math.random() * coachImgPaths.length)]; // randomly select a src path
-  createcoachs();
+  alienImg = new Image();
+  alienImg.src = "./images/alien.png"
+  createaliens();
 
     requestAnimationFrame(update);
-    document.addEventListener("keydown", movepozzo);
+    document.addEventListener("keydown", movejet);
     document.addEventListener("keyup", shoot);
 }
 
@@ -88,28 +80,28 @@ function update() {
 
     context.clearRect(0, 0, board.width, board.height);
 
-    //pozzo
-    context.drawImage(pozzoImg, pozzo.x, pozzo.y, pozzo.width, pozzo.height);
+    //jet
+    context.drawImage(jetImg, jet.x, jet.y, jet.width, jet.height);
 
-    //coach
-    for (let i = 0; i < coachArray.length; i++) {
-        let coach = coachArray[i];
-        if (coach.alive) {
-            coach.x += coachVelocityX;
+    //alien
+    for (let i = 0; i < alienArray.length; i++) {
+        let alien = alienArray[i];
+        if (alien.alive) {
+            alien.x += alienVelocityX;
 
-            //if coach touches the borders
-            if (coach.x + coach.width >= board.width || coach.x <= 0) {
-                coachVelocityX *= -1;
-                coach.x += coachVelocityX*2;
+            //if alien touches the borders
+            if (alien.x + alien.width >= board.width || alien.x <= 0) {
+                alienVelocityX *= -1;
+                alien.x += alienVelocityX*2;
 
-                //move all coachs up by one row
-                for (let j = 0; j < coachArray.length; j++) {
-                    coachArray[j].y += coachHeight;
+                //move all aliens up by one row
+                for (let j = 0; j < alienArray.length; j++) {
+                    alienArray[j].y += alienHeight;
                 }
             }
-            context.drawImage(coachImg, coach.x, coach.y, coach.width, coach.height);
+            context.drawImage(alienImg, alien.x, alien.y, alien.width, alien.height);
 
-            if (coach.y >= pozzo.y) {
+            if (alien.y >= jet.y) {
                 gameOver = true;
             }
         }
@@ -122,13 +114,13 @@ function update() {
         context.fillStyle="white";
         context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
 
-        //bullet collision with coachs
-        for (let j = 0; j < coachArray.length; j++) {
-            let coach = coachArray[j];
-            if (!bullet.used && coach.alive && detectCollision(bullet, coach)) {
+        //bullet collision with aliens
+        for (let j = 0; j < alienArray.length; j++) {
+            let alien = alienArray[j];
+            if (!bullet.used && alien.alive && detectCollision(bullet, alien)) {
                 bullet.used = true;
-                coach.alive = false;
-                coachCount--;
+                alien.alive = false;
+                alienCount--;
                 score += 100;
             }
         }
@@ -140,20 +132,20 @@ function update() {
     }
 
     //next level
-    if (coachCount == 0) {
-        //increase the number of coachs in columns and rows by 1
-        score += coachColumns * coachRows * 100; //bonus points :)
-        coachColumns = Math.min(coachColumns + 1, columns/2 -2); //cap at 16/2 -2 = 6
-        coachRows = Math.min(coachRows + 1, rows-4);  //cap at 16-4 = 12
-        if (coachVelocityX > 0) {
-            coachVelocityX += 0.2; //increase the coach movement speed towards the right
+    if (alienCount == 0) {
+        //increase the number of aliens in columns and rows by 1
+        score += alienColumns * alienRows * 100; //bonus points :)
+        alienColumns = Math.min(alienColumns + 1, columns/2 -2); //cap at 16/2 -2 = 6
+        alienRows = Math.min(alienRows + 1, rows-4);  //cap at 16-4 = 12
+        if (alienVelocityX > 0) {
+            alienVelocityX += 0.2; //increase the alien movement speed towards the right
         }
         else {
-            coachVelocityX -= 0.2; //increase the coach movement speed towards the left
+            alienVelocityX -= 0.2; //increase the alien movement speed towards the left
         }
-        coachArray = [];
+        alienArray = [];
         bulletArray = [];
-        createcoachs();
+        createaliens();
     }
 
     //score
@@ -162,34 +154,34 @@ function update() {
     context.fillText(score, 5, 20);
 }
 
-function movepozzo(e) {
+function movejet(e) {
     if (gameOver) {
         return;
     }
 
-    if (e.code == "ArrowLeft" && pozzo.x - pozzoVelocityX >= 0) {
-        pozzo.x -= pozzoVelocityX; //move left one tile
+    if (e.code == "ArrowLeft" && jet.x - jetVelocityX >= 0) {
+        jet.x -= jetVelocityX; //move left one tile
     }
-    else if (e.code == "ArrowRight" && pozzo.x + pozzoVelocityX + pozzo.width <= board.width) {
-        pozzo.x += pozzoVelocityX; //move right one tile
+    else if (e.code == "ArrowRight" && jet.x + jetVelocityX + jet.width <= board.width) {
+        jet.x += jetVelocityX; //move right one tile
     }
 }
 
-function createcoachs() {
-    for (let c = 0; c < coachColumns; c++) {
-        for (let r = 0; r < coachRows; r++) {
-            let coach = {
-                img : coachImg,
-                x : coachX + c*coachWidth,
-                y : coachY + r*coachHeight,
-                width : coachWidth,
-                height : coachHeight,
+function createaliens() {
+    for (let c = 0; c < alienColumns; c++) {
+        for (let r = 0; r < alienRows; r++) {
+            let alien = {
+                img : alienImg,
+                x : alienX + c*alienWidth,
+                y : alienY + r*alienHeight,
+                width : alienWidth,
+                height : alienHeight,
                 alive : true
             }
-            coachArray.push(coach);
+            alienArray.push(alien);
         }
     }
-    coachCount = coachArray.length;
+    alienCount = alienArray.length;
 }
 
 function shoot(e) {
@@ -200,8 +192,8 @@ function shoot(e) {
     if (e.code == "Space") {
         //shoot
         let bullet = {
-            x : pozzo.x + pozzoWidth*15/32,
-            y : pozzo.y,
+            x : jet.x + jetWidth*15/32,
+            y : jet.y,
             width : tileSize/8,
             height : tileSize/2,
             used : false
